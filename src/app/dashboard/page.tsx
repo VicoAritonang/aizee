@@ -237,13 +237,13 @@ export default function DashboardPage() {
                   
                   <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4">
                     <p className="text-blue-300 text-sm">
-                      💡 Layanan aktif hingga {profile.subscription_end_date ? 
-                        new Date(profile.subscription_end_date).toLocaleDateString('id-ID', { 
-                          day: 'numeric', 
-                          month: 'long', 
-                          year: 'numeric' 
-                        }) : '30 hari ke depan'
-                      }
+                                             💡 Layanan aktif hingga {profile.subscription_end_date ? 
+                         new Date(profile.subscription_end_date).toLocaleDateString("id-ID", { 
+                           day: "numeric", 
+                           month: "long", 
+                           year: "numeric" 
+                         }) : "30 hari ke depan"
+                       }
                     </p>
                   </div>
                 </div>
