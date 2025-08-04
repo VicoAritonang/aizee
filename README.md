@@ -1,117 +1,73 @@
-# Aizee - Agentic AI untuk Rumah Masa Depan
+# 🏠 Aizee - Agentic AI untuk Rumah Masa Depan
 
-![Aizee Logo](https://i.imgur.com/DtxyEY6.png)
+Platform smart home berbasis AI yang membangun ekosistem rumah masa depan yang cerdas, personal, dan manusiawi.
 
-Aizee adalah platform smart home berbasis Agentic AI yang membangun ekosistem rumah masa depan yang cerdas, personal, dan manusiawi melalui teknologi Internet of Things.
+## ✨ Fitur Utama
 
-## 🌟 Fitur Utama
+- **Agentic AI**: AI yang adaptif dan kontekstual untuk rumah pintar
+- **Integrasi IoT**: Koneksi dengan perangkat cerdas dan layanan digital
+- **Dashboard Personal**: Kontrol dan monitoring perangkat rumah
+- **Sistem Berlangganan**: Akses premium ke fitur-fitur canggih
+- **QR Code Integration**: Integrasi mudah dengan Tuya app
+- **Real-time Statistics**: Statistik pengunjung dan pengguna real-time
 
-- **Agentic AI**: AI yang adaptif dan kontekstual untuk memahami perilaku pengguna
-- **Smart Home Integration**: Integrasi dengan 1000+ perangkat smart home
-- **Real-time Monitoring**: Dashboard real-time untuk monitoring dan kontrol
-- **User Authentication**: Sistem autentikasi yang aman dengan Supabase
-- **Subscription Management**: Manajemen langganan dengan tracking otomatis
-- **QR Code Setup**: Integrasi mudah dengan aplikasi Tuya Smart
-- **Responsive Design**: Tampilan yang responsif untuk semua perangkat
+## 🛠️ Tech Stack
 
-## 🚀 Tech Stack
-
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: TailwindCSS 3.4.17
-- **Backend**: Supabase (Auth, PostgreSQL, Real-time)
+- **Frontend**: Next.js 15, React 18, TypeScript
+- **Styling**: TailwindCSS
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
 - **Deployment**: Vercel
 - **QR Code**: react-qr-code
-- **Icons**: Heroicons (SVG)
 
-## 📋 Prerequisites
+## 🚀 Quick Start
 
-Sebelum menjalankan project ini, pastikan Anda memiliki:
-
-- Node.js 18+ 
-- npm atau yarn
-- Akun Supabase
-- Akun Vercel (untuk deployment)
-
-## 🛠️ Installation
-
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/yourusername/aizee.git
-   cd aizee
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Setup environment variables**
-   Buat file `.env.local` di root project:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-4. **Setup Supabase Database**
-   - Buka Supabase Dashboard
-   - Jalankan script SQL dari `supabase-setup-final.sql`
-   - Jalankan script `fix-counter-functions.sql` untuk memperbaiki counter
-
-5. **Run development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open browser**
-   Buka [http://localhost:3000](http://localhost:3000)
-
-## 🗄️ Database Setup
-
-### 1. Jalankan Script Utama
-```sql
--- Jalankan supabase-setup-final.sql di Supabase SQL Editor
+### 1. Clone Repository
+```bash
+git clone https://github.com/VicoAritonang/aizee.git
+cd aizee
 ```
 
-### 2. Perbaiki Counter Functions
-```sql
--- Jalankan fix-counter-functions.sql di Supabase SQL Editor
+### 2. Install Dependencies
+```bash
+npm install
 ```
 
-### 3. Struktur Database
-- **profiles**: Data pengguna dan status langganan
-- **site_stats**: Statistik website (pengunjung, user terdaftar, user berlangganan)
-- **Functions**: increment_visitors(), update_registered_users_count(), update_subscribed_users_count()
-
-## 🚀 Deployment
-
-### Deploy ke Vercel
-
-1. **Push ke GitHub**
-   ```bash
-   git add .
-   git commit -m "Initial commit"
-   git push origin main
-   ```
-
-2. **Connect ke Vercel**
-   - Buka [vercel.com](https://vercel.com)
-   - Import project dari GitHub
-   - Tambahkan environment variables:
-     - `NEXT_PUBLIC_SUPABASE_URL`
-     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-3. **Deploy**
-   - Vercel akan otomatis deploy setiap kali ada push ke main branch
-   - Atau deploy manual dari Vercel Dashboard
-
-### Environment Variables di Vercel
-
-Pastikan environment variables berikut sudah diset di Vercel:
-
+### 3. Setup Environment Variables
+Buat file `.env.local` di root project:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+### 4. Setup Database
+1. Buka Supabase Dashboard
+2. Jalankan SQL script `supabase-setup-final.sql`
+3. Jalankan SQL script `fix-counter-functions.sql`
+
+### 5. Run Development Server
+```bash
+npm run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000) di browser.
+
+## 🌐 Deployment ke Vercel
+
+### 1. Push ke GitHub
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+### 2. Deploy di Vercel
+1. Buka [vercel.com](https://vercel.com)
+2. Import project dari GitHub
+3. Set environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Deploy!
 
 ## 📁 Project Structure
 
@@ -119,86 +75,47 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 aizee/
 ├── src/
 │   ├── app/
-│   │   ├── auth/
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── dashboard/
-│   │   ├── api/
-│   │   │   └── visit-counter/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── Header.tsx
-│   │   ├── HeroSection.tsx
-│   │   ├── FeaturesSection.tsx
-│   │   ├── StatsSection.tsx
-│   │   ├── AboutSection.tsx
-│   │   └── Footer.tsx
-│   └── lib/
-│       └── supabase.ts
-├── public/
-├── .env.local
-├── package.json
-├── tailwind.config.ts
-├── postcss.config.js
-└── README.md
+│   │   ├── api/                 # API Routes
+│   │   ├── auth/                # Auth pages
+│   │   ├── dashboard/           # Dashboard page
+│   │   ├── globals.css          # Global styles
+│   │   ├── layout.tsx           # Root layout
+│   │   └── page.tsx             # Homepage
+│   ├── components/              # React components
+│   └── lib/                     # Utilities
+├── public/                      # Static assets
+├── .env.local                   # Environment variables
+├── next.config.js               # Next.js config
+├── tailwind.config.ts           # TailwindCSS config
+└── package.json                 # Dependencies
 ```
 
 ## 🎨 Customization
 
-### Mengubah Logo
-- Logo utama: `https://i.imgur.com/DtxyEY6.png`
-- Logo di komponen: Header, Footer, Auth pages, Dashboard
-
-### Mengubah Warna
-- Primary: Cyan-Blue gradient
-- Accent: Yellow untuk text "Aizee"
-- Background: Blue-Purple gradient
+### Mengubah Warna dan Tema
+Edit `tailwind.config.ts` untuk mengubah color palette.
 
 ### Mengubah Konten
-- Team info: `src/components/AboutSection.tsx`
-- Contact info: Footer dan About section
-- Pricing: Dashboard dan Stats section
+- **Hero Section**: Edit `src/components/HeroSection.tsx`
+- **Features**: Edit `src/components/FeaturesSection.tsx`
+- **About Us**: Edit `src/components/AboutSection.tsx`
+- **Footer**: Edit `src/components/Footer.tsx`
 
-## 🔧 Available Scripts
+### Mengubah Logo
+Ganti URL logo di:
+- `src/components/Header.tsx`
+- `src/components/Footer.tsx`
+- `src/app/auth/login/page.tsx`
+- `src/app/auth/register/page.tsx`
+- `src/app/dashboard/page.tsx`
+
+## 📊 Available Scripts
 
 - `npm run dev` - Development server
-- `npm run build` - Build untuk production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-
-## 📊 Features
-
-### Authentication
-- Email/Password login
-- Google OAuth
-- Protected routes
-- Auto-redirect to dashboard
-
-### Dashboard
-- Subscription status
-- Payment simulation
-- QR Code for Tuya integration
-- Usage guides
-
-### Statistics
-- Real-time visitor counter
-- Registered users count
-- Subscribed users count
-- Auto-update on page load
-
-## 🤝 Contributing
-
-1. Fork project
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- `npm run build` - Production build
+- `npm run start` - Production server
+- `npm run lint` - ESLint check
+- `npm run format` - Prettier format
 
 ## 👥 Team
 
@@ -208,16 +125,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - **Email**: vicoaritonang.2611@gmail.com
-- **Phone**: +62 822 7399 2724
+- **Phone**: +6282273992724
 - **Address**: Depok, Indonesia
+
+## 📄 License
+
+MIT License - lihat [LICENSE](LICENSE) untuk detail.
 
 ## 🙏 Acknowledgments
 
-- Supabase untuk backend services
-- Vercel untuk hosting
-- TailwindCSS untuk styling
-- Next.js team untuk framework
-
----
-
-**Aizee** - Membangun ekosistem rumah masa depan yang cerdas, personal, dan manusiawi.
+- Next.js team untuk framework yang luar biasa
+- Supabase team untuk backend-as-a-service
+- TailwindCSS team untuk utility-first CSS framework
+- Vercel team untuk platform deployment yang mudah

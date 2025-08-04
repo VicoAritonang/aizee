@@ -2,8 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import QRCode from 'react-qr-code'
+
+// Initialize Supabase client conditionally
+let supabase: any = null
+
+const initializeSupabase = async () => {
+  if (typeof window !== 'undefined' && !supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      const { createClient } = await import('@supabase/supabase-js')
+      supabase = createClient(supabaseUrl, supabaseAnonKey)
+    }
+  }
+  return supabase
+}
 
 interface User {
   id: string
@@ -32,7 +47,14 @@ export default function DashboardPage() {
 
   const checkUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const client = await initializeSupabase()
+      if (!client) {
+        console.error('Database not configured')
+        router.push('/auth/login')
+        return
+      }
+
+      const { data: { user } } = await client.auth.getUser()
       
       if (!user) {
         router.push('/auth/login')
@@ -42,7 +64,7 @@ export default function DashboardPage() {
       setUser(user)
 
       // Fetch profile data
-      const { data: profileData, error } = await supabase
+      const { data: profileData, error } = await client
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -52,7 +74,7 @@ export default function DashboardPage() {
         console.error('Error fetching profile:', error)
         // If profile doesn't exist, create it
         if (error.code === 'PGRST116') {
-          const { data: newProfile, error: createError } = await supabase
+          const { data: newProfile, error: createError } = await client
             .from('profiles')
             .insert([
               {
@@ -84,12 +106,17 @@ export default function DashboardPage() {
   const handlePayment = async () => {
     setUpdating(true)
     try {
+      const client = await initializeSupabase()
+      if (!client) {
+        throw new Error('Database not configured')
+      }
+
       // Calculate subscription dates
       const startDate = new Date()
       const endDate = new Date()
       endDate.setDate(endDate.getDate() + 30) // 30 days from now
 
-      const { error } = await supabase
+      const { error } = await client
         .from('profiles')
         .update({ 
           subscription_status: 'active',
@@ -101,7 +128,7 @@ export default function DashboardPage() {
       if (error) throw error
 
       // Refresh profile data
-      const { data: profileData } = await supabase
+      const { data: profileData } = await client
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
@@ -116,7 +143,14 @@ export default function DashboardPage() {
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      const client = await initializeSupabase()
+      if (client) {
+        await client.auth.signOut()
+      }
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
     router.push('/')
   }
 
