@@ -1,0 +1,9 @@
+# Environment Variables untuk Aizee
+# Buat file .env.local di root project dengan isi berikut:
+
+NEXT_PUBLIC_SUPABASE_URL=https://wvwqtkbiwbrajgadgzsb.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2d3F0a2Jpd2JyYWpnYWRgenNiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDIyODYxOSwiZXhwIjoyMDY5ODA0NjE5fQ.nXKHe9FcIJusab_ATWzWBiBZALSDRG5wJjFe98Xi1f4
+
+# Optional: Google OAuth (jika menggunakan Google login)
+# GOOGLE_CLIENT_ID=your_google_client_id_here
+# GOOGLE_CLIENT_SECRET=your_google_client_secret_here 

@@ -1,0 +1,75 @@
+{
+  "name": "aizee",
+  "version": "1.0.0",
+  "description": "Agentic AI untuk Rumah Masa Depan - Platform smart home berbasis AI yang membangun ekosistem rumah masa depan yang cerdas, personal, dan manusiawi",
+  "keywords": [
+    "smart-home",
+    "agentic-ai",
+    "iot",
+    "nextjs",
+    "supabase",
+    "typescript",
+    "tailwindcss"
+  ],
+  "author": {
+    "name": "Aizee Team",
+    "email": "vicoaritonang.2611@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/aizee.git"
+  },
+  "homepage": "https://aizee.vercel.app",
+  "bugs": {
+    "url": "https://github.com/yourusername/aizee/issues"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "analyze": "ANALYZE=true npm run build",
+    "test": "echo \"No tests specified\" && exit 0",
+    "test:build": "npm run build",
+    "vercel-build": "npm run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "next": "15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-qr-code": "^2.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "15.0.0",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
