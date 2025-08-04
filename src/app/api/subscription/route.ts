@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+
+// Check if environment variables are available
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Only import supabase if environment variables are available
+let supabase: any = null
+if (supabaseUrl && supabaseAnonKey) {
+  const { createClient } = await import('@supabase/supabase-js')
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
+}
 
 export async function POST(request: Request) {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
+    }
+
     const { userId, status } = await request.json()
 
     if (!userId || !status) {
@@ -35,6 +49,10 @@ export async function GET(request: Request) {
 
     if (!userId) {
       return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 })
+    }
+
+    if (!supabase) {
+      return NextResponse.json({ subscription_status: 'inactive' })
     }
 
     // Get subscription status dari Supabase
