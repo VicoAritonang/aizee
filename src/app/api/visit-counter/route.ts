@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+
+// Check if environment variables are available
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Only import supabase if environment variables are available
+let supabase: any = null
+if (supabaseUrl && supabaseAnonKey) {
+  const { createClient } = await import('@supabase/supabase-js')
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
+}
 
 export async function POST() {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
+    }
+
     // Increment visitor counter
     const { data, error } = await supabase.rpc('increment_visitors')
     
@@ -20,6 +34,14 @@ export async function POST() {
 
 export async function GET() {
   try {
+    if (!supabase) {
+      return NextResponse.json({ 
+        visitors: 0,
+        registeredUsers: 0,
+        subscribedUsers: 0
+      })
+    }
+
     // First, update the counts to ensure they're current
     await supabase.rpc('update_registered_users_count')
     await supabase.rpc('update_subscribed_users_count')
