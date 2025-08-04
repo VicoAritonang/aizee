@@ -70,9 +70,7 @@ export default function LoginPage() {
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' 
-            ? `${window.location.origin}/dashboard`
-            : 'https://aizee.vercel.app/dashboard'
+          redirectTo: `https://aizee.vercel.app/auth/callback`
         }
       })
 

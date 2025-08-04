@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import QRCode from 'react-qr-code'
-import { useAuth } from '@/components/AuthProvider'
 
 // Initialize Supabase client conditionally
 let supabase: any = null
@@ -36,31 +35,64 @@ interface Profile {
 }
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, signOut } = useAuth()
+  const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        router.push('/auth/login')
-        return
+    checkUser()
+  }, [])
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      
+      if (code) {
+        try {
+          const client = await initializeSupabase()
+          if (!client) return
+          
+          // Exchange code for session
+          const { data, error } = await client.auth.exchangeCodeForSession(code)
+          
+          if (error) {
+            console.error('Error exchanging code for session:', error)
+          } else {
+            // Remove code from URL
+            window.history.replaceState({}, document.title, '/dashboard')
+            // Refresh user data
+            checkUser()
+          }
+        } catch (error) {
+          console.error('Error handling OAuth callback:', error)
+        }
       }
-      fetchProfile()
     }
-  }, [user, authLoading, router])
 
-  const fetchProfile = async () => {
-    if (!user) return
+    handleOAuthCallback()
+  }, [])
 
+  const checkUser = async () => {
     try {
       const client = await initializeSupabase()
       if (!client) {
         console.error('Database not configured')
+        router.push('/auth/login')
         return
       }
+
+      const { data: { user } } = await client.auth.getUser()
+      
+      if (!user) {
+        router.push('/auth/login')
+        return
+      }
+
+      setUser(user)
 
       // Fetch profile data
       const { data: profileData, error } = await client
@@ -95,7 +127,8 @@ export default function DashboardPage() {
         setProfile(profileData)
       }
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error('Error checking user:', error)
+      router.push('/auth/login')
     } finally {
       setLoading(false)
     }
@@ -141,10 +174,18 @@ export default function DashboardPage() {
   }
 
   const handleSignOut = async () => {
-    await signOut()
+    try {
+      const client = await initializeSupabase()
+      if (client) {
+        await client.auth.signOut()
+      }
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+    router.push('/')
   }
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
