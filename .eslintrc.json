@@ -1,7 +1,6 @@
 {
   "extends": [
-    "next/core-web-vitals",
-    "next/typescript"
+    "next/core-web-vitals"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "warn",
@@ -9,17 +8,5 @@
     "prefer-const": "error",
     "no-var": "error",
     "no-console": "warn"
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es6": true
-  },
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
   }
 } 
