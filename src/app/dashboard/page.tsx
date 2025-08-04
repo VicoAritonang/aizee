@@ -56,17 +56,18 @@ export default function DashboardPage() {
           const client = await initializeSupabase()
           if (!client) return
           
-          // Exchange code for session
-          const { data, error } = await client.auth.exchangeCodeForSession(code)
-          
-          if (error) {
-            console.error('Error exchanging code for session:', error)
-          } else {
-            // Remove code from URL
-            window.history.replaceState({}, document.title, '/dashboard')
-            // Refresh user data
-            checkUser()
-          }
+                  // Exchange code for session
+        const { data, error } = await client.auth.exchangeCodeForSession(code)
+        
+        if (error) {
+          console.error('Error exchanging code for session:', error)
+        } else {
+          console.log('OAuth session established:', data)
+          // Remove code from URL
+          window.history.replaceState({}, document.title, '/dashboard')
+          // Refresh user data
+          checkUser()
+        }
         } catch (error) {
           console.error('Error handling OAuth callback:', error)
         }
@@ -105,12 +106,25 @@ export default function DashboardPage() {
         console.error('Error fetching profile:', error)
         // If profile doesn't exist, create it
         if (error.code === 'PGRST116') {
+          console.log('Creating new profile for user:', user.id)
+          console.log('User metadata:', user.user_metadata)
+          
+          // Get name from OAuth metadata or user data
+          let userName = 'User'
+          if (user.user_metadata?.full_name) {
+            userName = user.user_metadata.full_name
+          } else if (user.user_metadata?.name) {
+            userName = user.user_metadata.name
+          } else if (user.email) {
+            userName = user.email.split('@')[0] // Use email prefix as name
+          }
+
           const { data: newProfile, error: createError } = await client
             .from('profiles')
             .insert([
               {
                 id: user.id,
-                name: user.user_metadata?.name || 'User',
+                name: userName,
                 email: user.email || '',
               }
             ])
@@ -119,11 +133,18 @@ export default function DashboardPage() {
 
           if (createError) {
             console.error('Error creating profile:', createError)
+            console.error('Profile creation details:', {
+              id: user.id,
+              name: userName,
+              email: user.email
+            })
           } else {
+            console.log('Profile created successfully:', newProfile)
             setProfile(newProfile)
           }
         }
       } else {
+        console.log('Profile found:', profileData)
         setProfile(profileData)
       }
     } catch (error) {
