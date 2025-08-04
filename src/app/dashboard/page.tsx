@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import QRCode from 'react-qr-code'
+import { useAuth } from '@/components/AuthProvider'
 
 // Initialize Supabase client conditionally
 let supabase: any = null
@@ -35,33 +36,31 @@ interface Profile {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null)
+  const { user, loading: authLoading, signOut } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
-    try {
-      const client = await initializeSupabase()
-      if (!client) {
-        console.error('Database not configured')
-        router.push('/auth/login')
-        return
-      }
-
-      const { data: { user } } = await client.auth.getUser()
-      
+    if (!authLoading) {
       if (!user) {
         router.push('/auth/login')
         return
       }
+      fetchProfile()
+    }
+  }, [user, authLoading, router])
 
-      setUser(user)
+  const fetchProfile = async () => {
+    if (!user) return
+
+    try {
+      const client = await initializeSupabase()
+      if (!client) {
+        console.error('Database not configured')
+        return
+      }
 
       // Fetch profile data
       const { data: profileData, error } = await client
@@ -96,8 +95,7 @@ export default function DashboardPage() {
         setProfile(profileData)
       }
     } catch (error) {
-      console.error('Error checking user:', error)
-      router.push('/auth/login')
+      console.error('Error fetching profile:', error)
     } finally {
       setLoading(false)
     }
@@ -143,18 +141,10 @@ export default function DashboardPage() {
   }
 
   const handleSignOut = async () => {
-    try {
-      const client = await initializeSupabase()
-      if (client) {
-        await client.auth.signOut()
-      }
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-    router.push('/')
+    await signOut()
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
