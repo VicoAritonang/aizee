@@ -50,7 +50,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) di browser.
+Buka [https://aizee.vercel.app](https://aizee.vercel.app) di browser.
 
 ## 🌐 Deployment ke Vercel
 

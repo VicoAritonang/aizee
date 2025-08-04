@@ -96,7 +96,7 @@ export default function RegisterPage() {
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `https://aizee.vercel.app/dashboard`
         }
       })
 

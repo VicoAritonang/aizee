@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Aizee - Agentic AI untuk Rumah Masa Depan',
     description: 'Aizee membangun ekosistem rumah masa depan yang cerdas, personal, dan manusiawi melalui teknologi Agentic AI dan Internet of Things.',
-    url: 'https://aizee.com',
+            url: 'https://aizee.vercel.app',
     siteName: 'Aizee',
     images: [
       {

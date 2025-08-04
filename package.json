@@ -18,11 +18,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/aizee.git"
+    "url": "https://github.com/VicoAritonang/aizee.git"
   },
   "homepage": "https://aizee.vercel.app",
   "bugs": {
-    "url": "https://github.com/yourusername/aizee/issues"
+    "url": "https://github.com/VicoAritonang/aizee/issues"
   },
   "scripts": {
     "dev": "next dev",
