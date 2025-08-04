@@ -1,9 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+
+// Initialize Supabase client conditionally
+let supabase: any = null
+
+const initializeSupabase = async () => {
+  if (typeof window !== 'undefined' && !supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      const { createClient } = await import('@supabase/supabase-js')
+      supabase = createClient(supabaseUrl, supabaseAnonKey)
+    }
+  }
+  return supabase
+}
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -13,13 +28,22 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
+  useEffect(() => {
+    initializeSupabase()
+  }, [])
+
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const client = await initializeSupabase()
+      if (!client) {
+        throw new Error('Database not configured')
+      }
+
+      const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
@@ -33,7 +57,7 @@ export default function RegisterPage() {
 
       if (data.user) {
         // Create profile directly in profiles table
-        const { error: profileError } = await supabase
+        const { error: profileError } = await client
           .from('profiles')
           .insert([
             {
@@ -64,7 +88,12 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const client = await initializeSupabase()
+      if (!client) {
+        throw new Error('Database not configured')
+      }
+
+      const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`

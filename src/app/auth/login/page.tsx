@@ -1,9 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+
+// Initialize Supabase client conditionally
+let supabase: any = null
+
+const initializeSupabase = async () => {
+  if (typeof window !== 'undefined' && !supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      const { createClient } = await import('@supabase/supabase-js')
+      supabase = createClient(supabaseUrl, supabaseAnonKey)
+    }
+  }
+  return supabase
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -12,13 +27,22 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
+  useEffect(() => {
+    initializeSupabase()
+  }, [])
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const client = await initializeSupabase()
+      if (!client) {
+        throw new Error('Database not configured')
+      }
+
+      const { error } = await client.auth.signInWithPassword({
         email,
         password,
       })
@@ -38,7 +62,12 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const client = await initializeSupabase()
+      if (!client) {
+        throw new Error('Database not configured')
+      }
+
+      const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`
