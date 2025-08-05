@@ -42,22 +42,36 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    checkUser()
-  }, [])
+    const initializeAuth = async () => {
+      const client = await initializeSupabase()
+      if (!client) return
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
+      // Set up auth state listener
+      const { data: { subscription } } = client.auth.onAuthStateChange(
+        async (event: string, session: any) => {
+          console.log('Auth state changed:', event, session?.user?.id)
+          
+          if (event === 'SIGNED_IN' && session?.user) {
+            setUser(session.user)
+            await createProfileIfNeeded(session.user)
+            setLoading(false)
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+            router.push('/auth/login')
+          }
+        }
+      )
+
+      // Check for OAuth callback
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
       
       if (code) {
+        console.log('Processing OAuth code:', code)
+        
         try {
-          const client = await initializeSupabase()
-          if (!client) return
-          
-          console.log('Processing OAuth code:', code)
-          
           // Exchange code for session
           const { data, error } = await client.auth.exchangeCodeForSession(code)
           
@@ -67,28 +81,31 @@ export default function DashboardPage() {
             return
           } else {
             console.log('OAuth session established:', data)
-            console.log('User data:', data.user)
-            console.log('User metadata:', data.user?.user_metadata)
-            
             // Remove code from URL
             window.history.replaceState({}, document.title, '/dashboard')
-            
-            // Set user immediately
-            setUser(data.user)
-            
-            // Create profile if needed
-            if (data.user) {
-              await createProfileIfNeeded(data.user)
-            }
           }
         } catch (error) {
           console.error('Error handling OAuth callback:', error)
           router.push('/auth/login')
         }
+      } else {
+        // No OAuth code, check current session
+        const { data: { user } } = await client.auth.getUser()
+        if (user) {
+          setUser(user)
+          await createProfileIfNeeded(user)
+          setLoading(false)
+        } else {
+          setLoading(false)
+          router.push('/auth/login')
+        }
       }
+
+      // Cleanup subscription on unmount
+      return () => subscription.unsubscribe()
     }
 
-    handleOAuthCallback()
+    initializeAuth()
   }, [])
 
   const createProfileIfNeeded = async (user: any) => {
@@ -156,54 +173,7 @@ export default function DashboardPage() {
     }
   }
 
-  const checkUser = async () => {
-    try {
-      const client = await initializeSupabase()
-      if (!client) {
-        console.error('Database not configured')
-        router.push('/auth/login')
-        return
-      }
 
-      const { data: { user } } = await client.auth.getUser()
-      
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
-
-      setUser(user)
-
-      // Fetch profile data
-      const { data: profileData, error } = await client
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching profile:', error)
-        // If profile doesn't exist, create it
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile for user:', user.id)
-          await createProfileIfNeeded(user)
-        } else {
-          // Other error, redirect to login
-          console.error('Profile error:', error)
-          router.push('/auth/login')
-          return
-        }
-      } else {
-        console.log('Profile found:', profileData)
-        setProfile(profileData)
-      }
-    } catch (error) {
-      console.error('Error checking user:', error)
-      router.push('/auth/login')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handlePayment = async () => {
     setUpdating(true)
