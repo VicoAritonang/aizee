@@ -64,7 +64,47 @@ export default function DashboardPage() {
         }
       )
 
-      // Check current session (OAuth code already handled in callback)
+      // Check for OAuth callback with hash fragment
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        console.log('OAuth callback detected with hash fragment')
+        
+        try {
+          // Parse hash fragment
+          const params = new URLSearchParams(hash.substring(1))
+          const accessToken = params.get('access_token')
+          const refreshToken = params.get('refresh_token')
+          
+          if (accessToken) {
+            // Set session manually
+            const { data, error } = await client.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            })
+            
+            if (error) {
+              console.error('Error setting session:', error)
+              router.push('/auth/login')
+              return
+            }
+            
+            if (data.user) {
+              console.log('Session set successfully for user:', data.user.id)
+              setUser(data.user)
+              await createProfileIfNeeded(data.user)
+              setLoading(false)
+              
+              // Clear hash from URL
+              window.history.replaceState({}, document.title, '/dashboard')
+              return
+            }
+          }
+        } catch (error) {
+          console.error('Error handling OAuth hash:', error)
+        }
+      }
+      
+      // Check current session
       const { data: { user } } = await client.auth.getUser()
       if (user) {
         setUser(user)
