@@ -56,20 +56,25 @@ export default function DashboardPage() {
           const client = await initializeSupabase()
           if (!client) return
           
-                  // Exchange code for session
-        const { data, error } = await client.auth.exchangeCodeForSession(code)
-        
-        if (error) {
-          console.error('Error exchanging code for session:', error)
-        } else {
-          console.log('OAuth session established:', data)
-          // Remove code from URL
-          window.history.replaceState({}, document.title, '/dashboard')
-          // Refresh user data
-          checkUser()
-        }
+          console.log('Processing OAuth code:', code)
+          
+          // Exchange code for session
+          const { data, error } = await client.auth.exchangeCodeForSession(code)
+          
+          if (error) {
+            console.error('Error exchanging code for session:', error)
+            router.push('/auth/login')
+            return
+          } else {
+            console.log('OAuth session established:', data)
+            // Remove code from URL
+            window.history.replaceState({}, document.title, '/dashboard')
+            // Refresh user data
+            await checkUser()
+          }
         } catch (error) {
           console.error('Error handling OAuth callback:', error)
+          router.push('/auth/login')
         }
       }
     }
@@ -119,6 +124,8 @@ export default function DashboardPage() {
             userName = user.email.split('@')[0] // Use email prefix as name
           }
 
+          console.log('Creating profile with name:', userName)
+
           const { data: newProfile, error: createError } = await client
             .from('profiles')
             .insert([
@@ -138,10 +145,16 @@ export default function DashboardPage() {
               name: userName,
               email: user.email
             })
+            // Don't redirect, just show error
           } else {
             console.log('Profile created successfully:', newProfile)
             setProfile(newProfile)
           }
+        } else {
+          // Other error, redirect to login
+          console.error('Profile error:', error)
+          router.push('/auth/login')
+          return
         }
       } else {
         console.log('Profile found:', profileData)
