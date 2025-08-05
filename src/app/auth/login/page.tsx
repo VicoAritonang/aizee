@@ -75,15 +75,54 @@ export default function LoginPage() {
         throw new Error('Database not configured')
       }
 
-      const { error } = await client.auth.signInWithPassword({
+      console.log('Attempting email login for:', email)
+
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) throw error
 
+      if (data.user) {
+        console.log('Email login successful for user:', data.user.id)
+        
+        // Check if profile exists and create if needed
+        const { data: existingProfile, error: profileError } = await client
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+
+        if (profileError && profileError.code === 'PGRST116') {
+          // Profile doesn't exist, create it
+          console.log('Creating profile for email user:', data.user.id)
+          
+          const { error: createError } = await client
+            .from('profiles')
+            .insert([
+              {
+                id: data.user.id,
+                name: data.user.email?.split('@')[0] || 'User',
+                email: data.user.email || '',
+              }
+            ])
+
+          if (createError) {
+            console.error('Error creating profile:', createError)
+          } else {
+            console.log('Profile created successfully for email user')
+          }
+        } else if (profileError) {
+          console.error('Error checking profile:', profileError)
+        } else {
+          console.log('Profile already exists for email user:', existingProfile)
+        }
+      }
+
       router.push('/dashboard')
     } catch (error: any) {
+      console.error('Email login error:', error)
       setError(error.message)
     } finally {
       setLoading(false)

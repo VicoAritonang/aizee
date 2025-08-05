@@ -127,8 +127,12 @@ export default function DashboardPage() {
       if (user) {
         console.log('User found in session:', user.id)
         setUser(user)
-        await createProfileIfNeeded(user)
-        setLoading(false)
+        
+        // Add delay to ensure session is fully established
+        setTimeout(async () => {
+          await createProfileIfNeeded(user)
+          setLoading(false)
+        }, 1000)
       } else {
         console.log('No user in session, redirecting to login')
         setLoading(false)
@@ -201,7 +205,7 @@ export default function DashboardPage() {
 
       // If no profile found by either method, create new one
       if (emailError?.code === 'PGRST116' && idError?.code === 'PGRST116') {
-        console.log('Creating new profile for OAuth user:', user.id)
+        console.log('Creating new profile for user:', user.id)
         console.log('User metadata:', user.user_metadata)
         
         // Get name from OAuth metadata or user data
@@ -239,9 +243,11 @@ export default function DashboardPage() {
           console.log('Profile created successfully:', newProfile)
           setProfile(newProfile)
         }
-      } else {
+      } else if (emailError && idError) {
         console.error('Error checking profile by email:', emailError)
         console.error('Error checking profile by ID:', idError)
+      } else {
+        console.log('Profile check completed, but no profile found or created')
       }
     } catch (error: any) {
       console.error('Error in createProfileIfNeeded:', error)
