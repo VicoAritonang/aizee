@@ -64,41 +64,15 @@ export default function DashboardPage() {
         }
       )
 
-      // Check for OAuth callback
-      const urlParams = new URLSearchParams(window.location.search)
-      const code = urlParams.get('code')
-      
-      if (code) {
-        console.log('Processing OAuth code:', code)
-        
-        try {
-          // Exchange code for session
-          const { data, error } = await client.auth.exchangeCodeForSession(code)
-          
-          if (error) {
-            console.error('Error exchanging code for session:', error)
-            router.push('/auth/login')
-            return
-          } else {
-            console.log('OAuth session established:', data)
-            // Remove code from URL
-            window.history.replaceState({}, document.title, '/dashboard')
-          }
-        } catch (error) {
-          console.error('Error handling OAuth callback:', error)
-          router.push('/auth/login')
-        }
+      // Check current session (OAuth code already handled in callback)
+      const { data: { user } } = await client.auth.getUser()
+      if (user) {
+        setUser(user)
+        await createProfileIfNeeded(user)
+        setLoading(false)
       } else {
-        // No OAuth code, check current session
-        const { data: { user } } = await client.auth.getUser()
-        if (user) {
-          setUser(user)
-          await createProfileIfNeeded(user)
-          setLoading(false)
-        } else {
-          setLoading(false)
-          router.push('/auth/login')
-        }
+        setLoading(false)
+        router.push('/auth/login')
       }
 
       // Cleanup subscription on unmount

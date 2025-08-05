@@ -29,6 +29,39 @@ export default function LoginPage() {
 
   useEffect(() => {
     initializeSupabase()
+    
+    // Check for error parameters in URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const errorParam = urlParams.get('error')
+    
+    if (errorParam) {
+      let errorMessage = 'Terjadi kesalahan saat login'
+      
+      switch (errorParam) {
+        case 'oauth_error':
+          errorMessage = 'Terjadi kesalahan saat login dengan Google'
+          break
+        case 'session_error':
+          errorMessage = 'Gagal membuat session, silakan coba lagi'
+          break
+        case 'no_user':
+          errorMessage = 'Data user tidak ditemukan'
+          break
+        case 'callback_error':
+          errorMessage = 'Terjadi kesalahan saat memproses login'
+          break
+        case 'config_error':
+          errorMessage = 'Konfigurasi sistem tidak lengkap'
+          break
+        default:
+          errorMessage = 'Terjadi kesalahan tidak diketahui'
+      }
+      
+      setError(errorMessage)
+      
+      // Clear error from URL
+      window.history.replaceState({}, document.title, '/auth/login')
+    }
   }, [])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
