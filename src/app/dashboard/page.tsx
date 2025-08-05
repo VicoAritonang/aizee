@@ -160,21 +160,47 @@ export default function DashboardPage() {
         metadata: user.user_metadata
       })
 
-      // Check if profile exists
-      const { data: existingProfile, error: profileError } = await client
+      // First, try to find profile by email (in case user ID is different)
+      const { data: existingProfileByEmail, error: emailError } = await client
+        .from('profiles')
+        .select('*')
+        .eq('email', user.email)
+        .single()
+
+      console.log('Profile check by email:', {
+        hasProfile: !!existingProfileByEmail,
+        error: emailError?.code,
+        errorMessage: emailError?.message
+      })
+
+      // Then check by user ID
+      const { data: existingProfileById, error: idError } = await client
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
-      console.log('Profile check result:', {
-        hasProfile: !!existingProfile,
-        error: profileError?.code,
-        errorMessage: profileError?.message
+      console.log('Profile check by ID:', {
+        hasProfile: !!existingProfileById,
+        error: idError?.code,
+        errorMessage: idError?.message
       })
 
-      if (profileError && profileError.code === 'PGRST116') {
-        // Profile doesn't exist, create it
+      // Use existing profile if found by either method
+      if (existingProfileByEmail) {
+        console.log('Profile found by email:', existingProfileByEmail)
+        setProfile(existingProfileByEmail)
+        return
+      }
+
+      if (existingProfileById) {
+        console.log('Profile found by ID:', existingProfileById)
+        setProfile(existingProfileById)
+        return
+      }
+
+      // If no profile found by either method, create new one
+      if (emailError?.code === 'PGRST116' && idError?.code === 'PGRST116') {
         console.log('Creating new profile for OAuth user:', user.id)
         console.log('User metadata:', user.user_metadata)
         
@@ -213,16 +239,9 @@ export default function DashboardPage() {
           console.log('Profile created successfully:', newProfile)
           setProfile(newProfile)
         }
-      } else if (profileError) {
-        console.error('Error checking profile:', profileError)
-        console.error('Profile error details:', {
-          code: profileError.code,
-          message: profileError.message,
-          details: profileError.details
-        })
       } else {
-        console.log('Profile already exists:', existingProfile)
-        setProfile(existingProfile)
+        console.error('Error checking profile by email:', emailError)
+        console.error('Error checking profile by ID:', idError)
       }
     } catch (error: any) {
       console.error('Error in createProfileIfNeeded:', error)
@@ -230,6 +249,43 @@ export default function DashboardPage() {
         message: error?.message || 'Unknown error',
         stack: error?.stack || 'No stack trace'
       })
+    }
+  }
+
+  const refreshProfile = async () => {
+    try {
+      const client = await initializeSupabase()
+      if (!client || !user) return
+
+      console.log('Refreshing profile for user:', user.id)
+
+      const { data: profileData, error } = await client
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error refreshing profile:', error)
+        // Try by email as fallback
+        const { data: profileByEmail, error: emailError } = await client
+          .from('profiles')
+          .select('*')
+          .eq('email', user.email)
+          .single()
+
+        if (emailError) {
+          console.error('Error refreshing profile by email:', emailError)
+        } else {
+          console.log('Profile refreshed by email:', profileByEmail)
+          setProfile(profileByEmail)
+        }
+      } else {
+        console.log('Profile refreshed by ID:', profileData)
+        setProfile(profileData)
+      }
+    } catch (error: any) {
+      console.error('Error in refreshProfile:', error)
     }
   }
 
@@ -242,6 +298,8 @@ export default function DashboardPage() {
       if (!client) {
         throw new Error('Database not configured')
       }
+
+      console.log('Processing payment for user:', user?.id)
 
       // Calculate subscription dates
       const startDate = new Date()
@@ -257,16 +315,15 @@ export default function DashboardPage() {
         })
         .eq('id', user?.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error updating subscription:', error)
+        throw error
+      }
+
+      console.log('Subscription updated successfully')
 
       // Refresh profile data
-      const { data: profileData } = await client
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-      setProfile(profileData)
+      await refreshProfile()
     } catch (error) {
       console.error('Error updating subscription:', error)
     } finally {
@@ -323,6 +380,12 @@ export default function DashboardPage() {
               <div className="flex items-center space-x-4">
                 <span className="text-white/80">Selamat datang, {profile?.name || user?.email}</span>
                 <button
+                  onClick={refreshProfile}
+                  className="px-3 py-2 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-all duration-300 text-sm"
+                >
+                  Refresh
+                </button>
+                <button
                   onClick={handleSignOut}
                   className="px-4 py-2 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all duration-300"
                 >
@@ -339,6 +402,15 @@ export default function DashboardPage() {
             {/* Subscription Status */}
             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">Status Langganan</h2>
+              
+              {/* Debug Info */}
+              <div className="mb-4 p-3 bg-gray-800/50 rounded-lg text-xs text-gray-300">
+                <div>User ID: {user?.id}</div>
+                <div>Email: {user?.email}</div>
+                <div>Profile ID: {profile?.id}</div>
+                <div>Profile Name: {profile?.name}</div>
+                <div>Subscription: {profile?.subscription_status || 'null'}</div>
+              </div>
               
               <div className="mb-8">
                 <div className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold ${
