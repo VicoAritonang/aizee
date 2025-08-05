@@ -44,7 +44,12 @@ export default function DashboardPage() {
   useEffect(() => {
     const initializeAuth = async () => {
       const client = await initializeSupabase()
-      if (!client) return
+      if (!client) {
+        console.error('Supabase client not available')
+        setLoading(false)
+        router.push('/auth/login')
+        return
+      }
 
       // Set up auth state listener
       const { data: { subscription } } = client.auth.onAuthStateChange(
@@ -63,6 +68,12 @@ export default function DashboardPage() {
           }
         }
       )
+
+      // Set timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('Auth initialization timeout, checking session...')
+        setLoading(false)
+      }, 10000) // 10 seconds timeout
 
       // Check for OAuth callback with hash fragment
       const hash = window.location.hash
@@ -105,18 +116,30 @@ export default function DashboardPage() {
       }
       
       // Check current session
-      const { data: { user } } = await client.auth.getUser()
+      const { data: { user }, error: userError } = await client.auth.getUser()
+      
+      console.log('Current session check:', { 
+        user: user?.id, 
+        error: userError,
+        hasUser: !!user 
+      })
+      
       if (user) {
+        console.log('User found in session:', user.id)
         setUser(user)
         await createProfileIfNeeded(user)
         setLoading(false)
       } else {
+        console.log('No user in session, redirecting to login')
         setLoading(false)
         router.push('/auth/login')
       }
 
-      // Cleanup subscription on unmount
-      return () => subscription.unsubscribe()
+      // Cleanup subscription and timeout on unmount
+      return () => {
+        subscription.unsubscribe()
+        clearTimeout(timeoutId)
+      }
     }
 
     initializeAuth()
@@ -125,9 +148,17 @@ export default function DashboardPage() {
   const createProfileIfNeeded = async (user: any) => {
     try {
       const client = await initializeSupabase()
-      if (!client) return
+      if (!client) {
+        console.error('Supabase client not available')
+        return
+      }
 
       console.log('Checking if profile exists for user:', user.id)
+      console.log('User data:', {
+        id: user.id,
+        email: user.email,
+        metadata: user.user_metadata
+      })
 
       // Check if profile exists
       const { data: existingProfile, error: profileError } = await client
@@ -135,6 +166,12 @@ export default function DashboardPage() {
         .select('*')
         .eq('id', user.id)
         .single()
+
+      console.log('Profile check result:', {
+        hasProfile: !!existingProfile,
+        error: profileError?.code,
+        errorMessage: profileError?.message
+      })
 
       if (profileError && profileError.code === 'PGRST116') {
         // Profile doesn't exist, create it
@@ -178,12 +215,21 @@ export default function DashboardPage() {
         }
       } else if (profileError) {
         console.error('Error checking profile:', profileError)
+        console.error('Profile error details:', {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details
+        })
       } else {
         console.log('Profile already exists:', existingProfile)
         setProfile(existingProfile)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in createProfileIfNeeded:', error)
+      console.error('Error details:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack || 'No stack trace'
+      })
     }
   }
 
