@@ -67,10 +67,19 @@ export default function DashboardPage() {
             return
           } else {
             console.log('OAuth session established:', data)
+            console.log('User data:', data.user)
+            console.log('User metadata:', data.user?.user_metadata)
+            
             // Remove code from URL
             window.history.replaceState({}, document.title, '/dashboard')
-            // Refresh user data
-            await checkUser()
+            
+            // Set user immediately
+            setUser(data.user)
+            
+            // Create profile if needed
+            if (data.user) {
+              await createProfileIfNeeded(data.user)
+            }
           }
         } catch (error) {
           console.error('Error handling OAuth callback:', error)
@@ -81,6 +90,71 @@ export default function DashboardPage() {
 
     handleOAuthCallback()
   }, [])
+
+  const createProfileIfNeeded = async (user: any) => {
+    try {
+      const client = await initializeSupabase()
+      if (!client) return
+
+      console.log('Checking if profile exists for user:', user.id)
+
+      // Check if profile exists
+      const { data: existingProfile, error: profileError } = await client
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError && profileError.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating new profile for OAuth user:', user.id)
+        console.log('User metadata:', user.user_metadata)
+        
+        // Get name from OAuth metadata or user data
+        let userName = 'User'
+        if (user.user_metadata?.full_name) {
+          userName = user.user_metadata.full_name
+        } else if (user.user_metadata?.name) {
+          userName = user.user_metadata.name
+        } else if (user.email) {
+          userName = user.email.split('@')[0]
+        }
+
+        console.log('Creating profile with name:', userName)
+
+        const { data: newProfile, error: createError } = await client
+          .from('profiles')
+          .insert([
+            {
+              id: user.id,
+              name: userName,
+              email: user.email || '',
+            }
+          ])
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Error creating profile:', createError)
+          console.error('Profile creation details:', {
+            id: user.id,
+            name: userName,
+            email: user.email
+          })
+        } else {
+          console.log('Profile created successfully:', newProfile)
+          setProfile(newProfile)
+        }
+      } else if (profileError) {
+        console.error('Error checking profile:', profileError)
+      } else {
+        console.log('Profile already exists:', existingProfile)
+        setProfile(existingProfile)
+      }
+    } catch (error) {
+      console.error('Error in createProfileIfNeeded:', error)
+    }
+  }
 
   const checkUser = async () => {
     try {
@@ -111,45 +185,8 @@ export default function DashboardPage() {
         console.error('Error fetching profile:', error)
         // If profile doesn't exist, create it
         if (error.code === 'PGRST116') {
-          console.log('Creating new profile for user:', user.id)
-          console.log('User metadata:', user.user_metadata)
-          
-          // Get name from OAuth metadata or user data
-          let userName = 'User'
-          if (user.user_metadata?.full_name) {
-            userName = user.user_metadata.full_name
-          } else if (user.user_metadata?.name) {
-            userName = user.user_metadata.name
-          } else if (user.email) {
-            userName = user.email.split('@')[0] // Use email prefix as name
-          }
-
-          console.log('Creating profile with name:', userName)
-
-          const { data: newProfile, error: createError } = await client
-            .from('profiles')
-            .insert([
-              {
-                id: user.id,
-                name: userName,
-                email: user.email || '',
-              }
-            ])
-            .select()
-            .single()
-
-          if (createError) {
-            console.error('Error creating profile:', createError)
-            console.error('Profile creation details:', {
-              id: user.id,
-              name: userName,
-              email: user.email
-            })
-            // Don't redirect, just show error
-          } else {
-            console.log('Profile created successfully:', newProfile)
-            setProfile(newProfile)
-          }
+          console.log('Profile not found, creating new profile for user:', user.id)
+          await createProfileIfNeeded(user)
         } else {
           // Other error, redirect to login
           console.error('Profile error:', error)
