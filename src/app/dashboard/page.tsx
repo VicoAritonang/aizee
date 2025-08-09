@@ -386,12 +386,6 @@ export default function DashboardPage() {
               <div className="flex items-center space-x-4">
                 <span className="text-white/80">Selamat datang, {profile?.name || user?.email}</span>
                 <button
-                  onClick={refreshProfile}
-                  className="px-3 py-2 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-all duration-300 text-sm"
-                >
-                  Refresh
-                </button>
-                <button
                   onClick={handleSignOut}
                   className="px-4 py-2 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all duration-300"
                 >
@@ -409,14 +403,7 @@ export default function DashboardPage() {
             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">Status Langganan</h2>
               
-              {/* Debug Info */}
-              <div className="mb-4 p-3 bg-gray-800/50 rounded-lg text-xs text-gray-300">
-                <div>User ID: {user?.id}</div>
-                <div>Email: {user?.email}</div>
-                <div>Profile ID: {profile?.id}</div>
-                <div>Profile Name: {profile?.name}</div>
-                <div>Subscription: {profile?.subscription_status || 'null'}</div>
-              </div>
+
               
               <div className="mb-8">
                 <div className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold ${
